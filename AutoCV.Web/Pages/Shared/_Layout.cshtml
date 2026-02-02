@@ -1,0 +1,28 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"] - AutoCV</title>
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>AutoCV</h2>
+            <nav>
+                <ul>
+                    <li><a href="/">Dashboard</a></li>
+                    <li><a href="/JobAds">Job Ads</a></li>
+                    <li><a href="/Projects">Projects</a></li>
+                    <li><a href="/Generate">Generate CV</a></li>
+                    <li><a href="/Settings">Settings</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            @RenderBody()
+        </main>
+    </div>
+</body>
+</html>

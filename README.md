@@ -1,0 +1,1 @@
+I tried cross compiling, but it always produced PE32+ executable.

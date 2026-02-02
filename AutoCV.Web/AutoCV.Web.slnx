@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="../AutoCV.Contracts/AutoCV.Contracts.csproj" Id="395ea3fa-8620-4984-b5a5-242e6da2b534" />
+  <Project Path="../AutoCV.Infrastructure/AutoCV.Infrastructure.csproj" />
+  <Project Path="AutoCV.Web.csproj" />
+</Solution>
