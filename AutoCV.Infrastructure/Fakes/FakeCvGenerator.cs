@@ -17,7 +17,7 @@
                 new GeneratedDocumentDto
                 {
                     FileName = "cv.md",
-                    Content = $"# CV for {jobAd.Title}\n\nCandidate: {profile.Header.FullName}"
+                    Content = $"# CV for {jobAd.Title}\n\nCandidate: {profile.Header}"
                 }
             }
             });

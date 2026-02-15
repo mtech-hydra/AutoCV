@@ -11,8 +11,7 @@
             {
                 Id = jobAdId,
                 Title = "Senior Software Engineer",
-                Company = "Acme Corp",
-                DescriptionMarkdown = "# Senior Software Engineer\n\nWe need C# and Docker."
+                Description = "# Senior Software Engineer\n\nWe need C# and Docker."
             });
         }
     }

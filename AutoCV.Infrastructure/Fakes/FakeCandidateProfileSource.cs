@@ -9,17 +9,13 @@
         {
             return Task.FromResult(new CandidateProfileDto
             {
-                Header = new HeaderDto
-                {
-                    FullName = "Your Name",
-                    Email = "you@example.com"
-                },
-                Education = new EducationDto
+                Header = "Sample Candidate Profile",
+                Educations = [new EducationDto
                 {
                     University = "Your University",
                     Degree = "Computer Science",
                     GraduationYear = 2015
-                },
+                }],
                 Experiences = new(),
                 Projects = new()
             });
