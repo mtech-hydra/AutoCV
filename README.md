@@ -28,3 +28,26 @@ How to make SQL Server initial database creation happen in Docker?,Place a creat
 How to clean Docker volumes for SQL Server?,docker compose down -v and optionally docker volume rm <volume>, but only if not in use.
 Why does .NET Core require different builds per OS architecture?,Because some libraries have native dependencies (.dll vs .so) and IL alone is not sufficient for runtime.
 What is the recommended way to build multi-platform .NET apps?,Use multi-stage Docker build or build on the target OS to ensure all native libraries match.
+
+Available models:
+
+codestral:latest                                                               0898a8b286d5    12 GB     6 months ago
+deepseek-coder-v2:latest                                                       63fb193b3a9b    8.9 GB    6 months ago
+llama3.3:latest                                                                a6eb4748fd29    42 GB     6 months ago
+hf.co/sm54/FuseO1-DeepSeekR1-QwQ-SkyT1-Flash-32B-Preview-Q4_K_M-GGUF:latest    4b36bdac56b3    19 GB     6 months ago
+llama3.1:8b                                                                    46e0c10c039e    4.9 GB    6 months ago
+reader-lm:latest                                                               33da2b9e0afe    934 MB    6 months ago
+command-r:latest                                                               7d96360d357f    18 GB     6 months ago
+granite3.1-dense:latest                                                        34d3be74ec54    5.0 GB    6 months ago
+llava:7b                                                                       8dd30f6b0cb1    4.7 GB    6 months ago
+llava:13b                                                                      0d0eb4d7f485    8.0 GB    6 months ago
+llava:34b                                                                      3d2d24f46674    20 GB     6 months ago
+dolphin-mistral:7b                                                             5dc8c5a2be65    4.1 GB    6 months ago
+gemma3:latest                                                                  a2af6cc3eb7f    3.3 GB    6 months ago
+deepseek-r1:latest                                                             6995872bfe4c    5.2 GB    6 months ago
+mario:latest                                                                   24a28eafbc72    2.0 GB    8 months ago
+dolphin-mixtral:latest                                                         cfada4ba31c7    26 GB     14 months ago
+gemma:latest                                                                   a72c7f4d0a15    5.0 GB    14 months ago
+qwen2.5-coder:latest                                                           2b0496514337    4.7 GB    14 months ago
+qwq:latest                                                                     46407beda5c0    19 GB     14 months ago
+llama3.2:latest                                                                a80c4f17acd5    2.0 GB    14 months ago

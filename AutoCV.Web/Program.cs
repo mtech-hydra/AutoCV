@@ -32,16 +32,32 @@ var host = Host.CreateDefaultBuilder(args)
         services.AddSingleton<IGeneratedDocumentWriter, FakeDocumentWriter>();
         services.AddSingleton<HappyPathRunner>();
 
-        services.AddHttpClient();
+        //services.AddHttpClient();
+        services.AddHttpClient("AiClient")
+            .ConfigureHttpClient(client =>
+            {
+                client.Timeout = TimeSpan.FromHours(1); // set timeout to 1 hour
+            });
 
-        var huggingFaceApiKey =
+        /*var huggingFaceApiKey =
             Environment.GetEnvironmentVariable("HuggingFaceApiKey") ?? "<!-- no key found -->";
 
         services.AddSingleton<IAiContentGenerator>(sp =>
             new HuggingFaceAiProvider(
                 huggingFaceApiKey,
                 sp.GetRequiredService<HttpClient>()
-            ));
+            ));*/
+        services.AddSingleton<IAiContentGenerator>(sp =>
+        {
+            // Get the named HttpClient with extended timeout
+            var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+            var httpClient = httpClientFactory.CreateClient("AiClient");
+
+            return new OllamaAiProvider(
+                httpClient,
+                model: "hf.co/sm54/FuseO1-DeepSeekR1-QwQ-SkyT1-Flash-32B-Preview-Q4_K_M-GGUF:latest"
+            );
+        });
 
         services.AddSingleton<CvGeneratorService>();
         services.AddSingleton<CoverLetterGeneratorService>();

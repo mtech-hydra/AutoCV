@@ -16,7 +16,14 @@ namespace AutoCV.Web.Services
         public async Task<string> GenerateMarkdownAsync(CandidateProfileDto profile, JobAdDto? jobAd = null)
         {
             // Determine file path
-            var baseDir = Path.Combine("D:\\Nextcloud\\AutoCV\\JobAds",
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory()) // project root
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .Build();
+
+            // Read the setting
+            var jobAdsBaseDir = configuration["JobAdsDirectory"];
+            var baseDir = Path.Combine(jobAdsBaseDir,
                 string.Join("_", jobAd.Title.Split(Path.GetInvalidFileNameChars())));
             if (!Directory.Exists(baseDir))
                 Directory.CreateDirectory(baseDir);
@@ -41,8 +48,15 @@ namespace AutoCV.Web.Services
 
         public void SaveMarkdown(CandidateProfileDto profile, string markdown, JobAdDto jobAd)
         {
-            //var dir = "D:\\Nextcloud\\AutoCV\\Generated"; // or inject via config
-            var dir = Path.Combine("D:\\Nextcloud\\AutoCV\\JobAds",
+            // Determine file path
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory()) // project root
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .Build();
+
+            // Read the setting
+            var jobAdsBaseDir = configuration["JobAdsDirectory"];
+            var dir = Path.Combine(jobAdsBaseDir,
                 string.Join("_", jobAd.Title.Split(Path.GetInvalidFileNameChars())));
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
