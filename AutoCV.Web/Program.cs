@@ -1,151 +1,109 @@
 using AutoCV.Contracts.Dtos;
-// NOTE:
-// EF Core migrations intentionally disabled.
-// Database schema will be introduced later.
-// this comment is here to prevent "why is nothing migrating" headache?
-
 using AutoCV.Contracts.Interfaces;
 using AutoCV.Infrastructure.Ai;
 using AutoCV.Web.Data;
 using AutoCV.Web.Fakes;
 using AutoCV.Web.Services;
-using Microsoft.Data.SqlClient;
+
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Reflection.Emit;
-using static System.Formats.Asn1.AsnWriter;
 
-var builder = WebApplication.CreateBuilder(args);
+Console.WriteLine("=== AutoCV Console Runner ===");
 
-foreach (var kv in builder.Configuration.AsEnumerable())
-{
-    if (kv.Key.Contains("ConnectionStrings"))
-        Console.WriteLine($"{kv.Key} = {kv.Value}");
-}
+// --------------------
+// CONFIG
+// --------------------
 
-// Add services to the container.
-builder.Services.AddRazorPages();
-
-string cs = builder.Configuration.GetConnectionString("MainDb");
-builder.Services.AddDbContext<AutoCvDbContext>(options =>
-    options.UseSqlServer(cs));
-
-Console.WriteLine("---- CONNECTION STRING DEBUG ----");
-Console.WriteLine(cs == null ? "NULL" : $"Length: {cs.Length}");
-Console.WriteLine(cs);
-Console.WriteLine("--------------------------------");
-
-builder.Services.AddSingleton<IJobAdSource, FakeJobAdSource>();
-builder.Services.AddSingleton<ICandidateProfileSource, FakeCandidateProfileSource>();
-builder.Services.AddSingleton<ICvGenerator, FakeCvGenerator>();
-builder.Services.AddSingleton<IGeneratedDocumentWriter, FakeDocumentWriter>();
-builder.Services.AddSingleton<HappyPathRunner>();
-
-builder.Services.AddHttpClient();
-
-var huggingFaceApiKey = Environment.GetEnvironmentVariable("HuggingFaceApiKey") ?? "<!-- no key found -->";
-builder.Services.AddSingleton<IAiContentGenerator>(sp =>
-    new HuggingFaceAiProvider(huggingFaceApiKey, sp.GetRequiredService<HttpClient>())
-    //new DummyAiProvider(huggingFaceApiKey, sp.GetRequiredService<HttpClient>())
-);
-
-// CV and Cover Letter services
-builder.Services.AddSingleton<CvGeneratorService>();
-builder.Services.AddSingleton<CoverLetterGeneratorService>();
-
-// Other services like DbContext
-builder.Services.AddDbContext<AutoCvDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("MainDb"))
-);
-
-var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Error");
-}
-
-app.MapGet("/happy", async (HappyPathRunner runner) =>
-{
-    await runner.RunAsync("job-123");
-    return Results.Ok("Happy path executed");
-});
-
-app.MapGet("/health/db", async () =>
-{
-    var connStr = builder.Configuration["ConnectionStrings:MainDb"];
-
-    if (string.IsNullOrWhiteSpace(connStr))
-        return Results.Problem("Connection string not configured");
-
-    await using var conn = new SqlConnection(connStr);
-    await conn.OpenAsync();
-
-    return Results.Ok("DB OK");
-});
-
-app.UseStaticFiles();
-
-app.UseRouting();
-
-app.UseAuthorization();
-
-// Initialize DB
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<AutoCvDbContext>();
-    DbInitializer.Initialize(db);
-
-    Console.WriteLine("Database debug: " + db.Database.CanConnect());
-    Console.WriteLine("Database debug: " + db.Database.GetDbConnection().Database);
-
-    var cvGenerator = scope.ServiceProvider.GetRequiredService<CvGeneratorService>();
-    // Placeholder old:
-    // var coverLetterGenerator = new CoverLetterGeneratorService(app.Configuration);
-    //var cvGenerator = new CvGeneratorService(app.Configuration);
-    var coverLetterGenerator = scope.ServiceProvider.GetRequiredService<CoverLetterGeneratorService>();
-
-    var profileLoader = new ProfileLoader(app.Configuration);
-    var profiles = profileLoader.LoadProfiles().ToList();
-    
-    var jobAdLoader = new JobAdLoader(builder.Configuration);
-    var jobAds = jobAdLoader.LoadJobAdsFromDirectory().ToList();
-
-
-    // Example: generate a cover letter for each profile for each job ad
-    foreach (var profile in profiles)
+var host = Host.CreateDefaultBuilder(args)
+    .ConfigureServices((context, services) =>
     {
-        // Load job ads from DB
-        //var jobAds = scope.ServiceProvider.GetRequiredService<AutoCvDbContext>().Errand.ToList();
+        var cs = context.Configuration.GetConnectionString("MainDb");
 
-        foreach (var jobAd in jobAds)
-        { 
-            var cvMd = await cvGenerator.GenerateMarkdownAsync(profile, jobAd);
-            cvGenerator.SaveMarkdown(profile, cvMd, jobAd);
+        Console.WriteLine("---- CONNECTION STRING DEBUG ----");
+        Console.WriteLine(cs ?? "NULL");
+        Console.WriteLine("--------------------------------");
 
-            var coverMd = await coverLetterGenerator.GenerateMarkdownAsync(profile, jobAd);
-            coverLetterGenerator.SaveMarkdown(profile, coverMd, jobAd);
+        services.AddDbContext<AutoCvDbContext>(options =>
+            options.UseSqlServer(cs));
 
-            bool exists = await db.Errand.AnyAsync(e => e.Title == jobAd.Title);
+        // Fake/demo services
+        services.AddSingleton<IJobAdSource, FakeJobAdSource>();
+        services.AddSingleton<ICandidateProfileSource, FakeCandidateProfileSource>();
+        services.AddSingleton<ICvGenerator, FakeCvGenerator>();
+        services.AddSingleton<IGeneratedDocumentWriter, FakeDocumentWriter>();
+        services.AddSingleton<HappyPathRunner>();
 
-            if (!exists)
+        services.AddHttpClient();
+
+        var huggingFaceApiKey =
+            Environment.GetEnvironmentVariable("HuggingFaceApiKey") ?? "<!-- no key found -->";
+
+        services.AddSingleton<IAiContentGenerator>(sp =>
+            new HuggingFaceAiProvider(
+                huggingFaceApiKey,
+                sp.GetRequiredService<HttpClient>()
+            ));
+
+        services.AddSingleton<CvGeneratorService>();
+        services.AddSingleton<CoverLetterGeneratorService>();
+
+        services.AddSingleton<ProfileLoader>();
+        services.AddSingleton<JobAdLoader>();
+    })
+    .Build();
+
+
+// --------------------
+// RUN
+// --------------------
+
+using var scope = host.Services.CreateScope();
+var services = scope.ServiceProvider;
+
+var db = services.GetRequiredService<AutoCvDbContext>();
+
+DbInitializer.Initialize(db);
+
+Console.WriteLine("DB connected: " + db.Database.CanConnect());
+Console.WriteLine("DB name: " + db.Database.GetDbConnection().Database);
+
+var cvGenerator = services.GetRequiredService<CvGeneratorService>();
+var coverLetterGenerator = services.GetRequiredService<CoverLetterGeneratorService>();
+
+var profileLoader = services.GetRequiredService<ProfileLoader>();
+var jobAdLoader = services.GetRequiredService<JobAdLoader>();
+
+var profiles = profileLoader.LoadProfiles().ToList();
+var jobAds = jobAdLoader.LoadJobAdsFromDirectory().ToList();
+
+Console.WriteLine($"Profiles: {profiles.Count}");
+Console.WriteLine($"Job ads: {jobAds.Count}");
+
+foreach (var profile in profiles)
+{
+    foreach (var jobAd in jobAds)
+    {
+        Console.WriteLine($"Generating for {profile.Header} -> {jobAd.Title}");
+
+        var cvMd = await cvGenerator.GenerateMarkdownAsync(profile, jobAd);
+        cvGenerator.SaveMarkdown(profile, cvMd, jobAd);
+
+        var coverMd = await coverLetterGenerator.GenerateMarkdownAsync(profile, jobAd);
+        coverLetterGenerator.SaveMarkdown(profile, coverMd, jobAd);
+
+        bool exists = await db.Errand.AnyAsync(e => e.Title == jobAd.Title);
+
+        if (!exists)
+        {
+            db.Errand.Add(new JobAdEntity
             {
-                db.Errand.Add(new JobAdEntity
-                {
-                    Title = jobAd.Title,
-                    Status = "Generated",
-                    CreatedDate = DateTime.UtcNow
-                });
+                Title = jobAd.Title,
+                Status = "Generated",
+                CreatedDate = DateTime.UtcNow
+            });
 
-                await db.SaveChangesAsync();
-            }
-
+            await db.SaveChangesAsync();
         }
     }
 }
 
-
-app.MapRazorPages();
-
-app.Run();
+Console.WriteLine("=== DONE ===");
