@@ -97,6 +97,9 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AutoCvDbContext>();
     DbInitializer.Initialize(db);
 
+    Console.WriteLine("Database debug: " + db.Database.CanConnect());
+    Console.WriteLine("Database debug: " + db.Database.GetDbConnection().Database);
+
     var cvGenerator = scope.ServiceProvider.GetRequiredService<CvGeneratorService>();
     // Placeholder old:
     // var coverLetterGenerator = new CoverLetterGeneratorService(app.Configuration);
@@ -123,6 +126,21 @@ using (var scope = app.Services.CreateScope())
 
             var coverMd = await coverLetterGenerator.GenerateMarkdownAsync(profile, jobAd);
             coverLetterGenerator.SaveMarkdown(profile, coverMd, jobAd);
+
+            bool exists = await db.Errand.AnyAsync(e => e.Title == jobAd.Title);
+
+            if (!exists)
+            {
+                db.Errand.Add(new JobAdEntity
+                {
+                    Title = jobAd.Title,
+                    Status = "Generated",
+                    CreatedDate = DateTime.UtcNow
+                });
+
+                await db.SaveChangesAsync();
+            }
+
         }
     }
 }
