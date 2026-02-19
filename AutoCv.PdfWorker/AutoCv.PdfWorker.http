@@ -1,0 +1,6 @@
+@AutoCv.PdfWorker_HostAddress = http://localhost:5100
+
+GET {{AutoCv.PdfWorker_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -9,4 +9,9 @@
 	<ItemGroup>
 		<ProjectReference Include="..\AutoCV.Contracts\AutoCV.Contracts.csproj" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Markdig" Version="0.45.0" />
+	  <PackageReference Include="PuppeteerSharp" Version="21.1.0" />
+	</ItemGroup>
 </Project>

@@ -20,10 +20,10 @@ namespace AutoCV.Infrastructure.Ai
 
         private string BuildCvPrompt(CandidateProfileDto profile, JobAdDto? jobAd)
         {
-            var prompt = $"Skapa CV headline. Svara utan förklaring. Direkt svar. ";
+            var prompt = $"Skapa CV opening paragraph, about 80 words. Svara utan förklaring. Direkt svar. ";
             if (jobAd != null)
                 prompt += $"Relevant till:\n{jobAd.Title}\n{jobAd.Description}\n";
-            prompt += "About 20 words.";
+            prompt += "";
             return prompt;
         }
 
@@ -61,7 +61,7 @@ namespace AutoCV.Infrastructure.Ai
                 $"12. Highlight that the individual has positive attitude to personal and professional development.\r\n\n";
             if (jobAd != null)
                 prompt += $"\n\n**Annons**:\n\n{jobAd.Title}\n{jobAd.Description}\n";
-            prompt += "Max 120 ord.";
+            prompt += "Max 120 words. Do not provide reasoning, write direct answer.";
             return prompt;
         }
 
@@ -76,6 +76,7 @@ namespace AutoCV.Infrastructure.Ai
                 max_new_tokens = 200
             };
 
+            // TODO: Breaks if AI unaccessible, need to handle that better
             var response = await _http.PostAsJsonAsync(_apiUrl, payload);
             var content = await response.Content.ReadAsStringAsync();
 
