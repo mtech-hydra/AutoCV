@@ -34,7 +34,7 @@ namespace AutoCV.Infrastructure.Ai
 
         private string BuildCoverLetterPrompt(CandidateProfileDto profile, JobAdDto? jobAd)
         {
-            var prompt = $"Skriv ett personligt brev. Använd skandinavisk brutalism. Svara utan förklaring. Direkt svar.\n";
+            var prompt = $"Write cover letter. Use scandinavian brutalism. Svara utan förklaring. Direkt svar.\n";
             if (jobAd != null)
                 prompt += $"Relevant till:\n{jobAd.Title}\n{jobAd.Description}\n";
             prompt += "Max 120 ord.";

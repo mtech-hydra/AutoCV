@@ -12,7 +12,7 @@ namespace AutoCV.Web.Services
             _ai = ai;
         }
 
-        // New async version calling HuggingFace
+        // New async version calling HuggingFaces
         public async Task<string> GenerateMarkdownAsync(CandidateProfileDto profile, JobAdDto? jobAd = null)
         {
             // Determine file path

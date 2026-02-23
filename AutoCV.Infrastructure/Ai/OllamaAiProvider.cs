@@ -20,9 +20,9 @@ namespace AutoCV.Infrastructure.Ai
 
         private string BuildCvPrompt(CandidateProfileDto profile, JobAdDto? jobAd)
         {
-            var prompt = $"Skapa CV opening paragraph, about 80 words. Svara utan förklaring. Direkt svar. ";
+            var prompt = $"CREATE CV opening paragraph, about 80 words. Do not include <think> tags, print direct answer: ";
             if (jobAd != null)
-                prompt += $"Relevant till:\n{jobAd.Title}\n{jobAd.Description}\n";
+                prompt += $"Relevant to:\n{jobAd.Title}\n{jobAd.Description}\n";
             prompt += "";
             return prompt;
         }
@@ -60,7 +60,7 @@ namespace AutoCV.Infrastructure.Ai
                 $"a strategy to clarify the person’s attributes and fit for jobs in the tech space.\r\n" +
                 $"12. Highlight that the individual has positive attitude to personal and professional development.\r\n\n";
             if (jobAd != null)
-                prompt += $"\n\n**Annons**:\n\n{jobAd.Title}\n{jobAd.Description}\n";
+                prompt += $"\n\n**Ad**:\n\n{jobAd.Title}\n{jobAd.Description}\n";
             prompt += "Max 120 words. Do not provide reasoning, write direct answer.";
             return prompt;
         }
