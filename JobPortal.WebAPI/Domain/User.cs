@@ -1,17 +1,10 @@
-public class User : BaseEntity
+namespace JobPortal.WebAPI.Domain
 {
-    public string Email { get; private set; }
-    public string PasswordHash { get; private set; }
-    public string FirstName { get; private set; }
-    public string LastName { get; private set; }
-
-    public User() { }
-
-    public User(string email, string passwordHash, string firstName, string lastName)
+    public class User : BaseEntity
     {
-        Email = email;
-        PasswordHash = passwordHash;
-        FirstName = firstName;
-        LastName = lastName;
+        public string Email { get; set; } = null!;
+        public string PasswordHash { get; set; } = null!;
+        public string FirstName { get; set; } = null!;
+        public string LastName { get; set; } = null!;
     }
 }

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using JobPortal.WebAPI.Domain;
 
 public class JobPortalDbContext : DbContext
 {

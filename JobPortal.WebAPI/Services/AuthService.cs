@@ -1,83 +1,90 @@
+using JobPortal.WebAPI.DTOs;
+using JobPortal.WebAPI.Domain;
+using JobPortal.WebAPI.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 
-public class AuthService
+namespace JobPortal.WebAPI.Services
 {
-    private readonly AutoCvDbContext _context;
-    private readonly JwtService _jwtService;
-
-    public AuthService(AutoCvDbContext context, JwtService jwtService)
+    public class AuthService
     {
-        _context = context;
-        _jwtService = jwtService;
-    }
+        private readonly AppDbContext _dbContext;
+        private readonly string _jwtSecret;
 
-    public async Task<AuthResult?> RegisterAsync(RegisterRequest request)
-    {
-        Console.WriteLine($"Attempting registration for {request.Email}");
-
-        // Check if user already exists
-        if (await _context.Users.AnyAsync(u => u.Email == request.Email))
-            throw new InvalidOperationException("User already exists");
-
-        // Hash the password
-        var passwordHash = HashPassword(request.Password);
-
-        // Create new user entity
-        var user = new User(
-            email: request.Email,
-            passwordHash: passwordHash,
-            firstName: request.FirstName,
-            lastName: request.LastName
-        );
-
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-
-        // Generate JWT
-        var token = _jwtService.GenerateToken(user);
-
-        return new AuthResult
+        public AuthService(AppDbContext dbContext)
         {
-            Email = user.Email,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Token = token
-        };
-    }
+            _dbContext = dbContext;
+            _jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
+                         ?? throw new Exception("JWT_SECRET not set");
+        }
 
-    public async Task<AuthResult?> LoginAsync(LoginRequest request)
-    {
-        Console.WriteLine($"Attempting login for {request.Email}");
-
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
-        if (user == null) return null;
-
-        if (!VerifyPassword(request.Password, user.PasswordHash))
-            return null;
-
-        var token = _jwtService.GenerateToken(user);
-
-        return new AuthResult
+        public async Task<AuthResult> RegisterAsync(RegisterRequest request)
         {
-            Email = user.Email,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Token = token
-        };
-    }
+            if (await _dbContext.Users.AnyAsync(u => u.Email == request.Email))
+                throw new Exception("Email already in use");
 
-    // ----- PASSWORD HASHING -----
-    private string HashPassword(string password)
-    {
-        using var sha = SHA256.Create();
-        var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(password));
-        return Convert.ToBase64String(bytes);
-    }
+            PasswordHasher ph = new PasswordHasher();
+            var user = new User
+            {
+                Email = request.Email,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                PasswordHash = ph.Hash(request.Password)
+            };
 
-    private bool VerifyPassword(string password, string hash)
-    {
-        return HashPassword(password) == hash;
+            _dbContext.Users.Add(user);
+            await _dbContext.SaveChangesAsync();
+
+            return new AuthResult
+            {
+                Token = GenerateJwtToken(user),
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName
+            };
+        }
+
+        public async Task<AuthResult> LoginAsync(LoginRequest request)
+        {
+            var user = await _dbContext.Users
+                .FirstOrDefaultAsync(u => u.Email == request.Email && !u.IsDeleted);
+
+            PasswordHasher ph = new PasswordHasher();
+            if (user == null || !ph.Verify(request.Password, user.PasswordHash))
+                throw new Exception("Invalid credentials");
+
+            return new AuthResult
+            {
+                Token = GenerateJwtToken(user),
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName
+            };
+        }
+
+        private string GenerateJwtToken(User user)
+        {
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSecret));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim("firstName", user.FirstName),
+                new Claim("lastName", user.LastName)
+            };
+
+            var token = new JwtSecurityToken(
+                claims: claims,
+                expires: DateTime.UtcNow.AddHours(8),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
     }
 }

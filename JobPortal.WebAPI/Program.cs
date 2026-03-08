@@ -1,6 +1,9 @@
-using Microsoft.EntityFrameworkCore;
+using JobPortal.WebAPI.Infrastructure;
+using JobPortal.WebAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,17 +13,21 @@ string connectionString = builder.Configuration.GetConnectionString("MainDb");
 //    options.UseSqlServer(connectionString));
 
 // Add debug for SQL stmts
-builder.Services.AddDbContext<JobPortalDbContext>(options =>
+var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? throw new Exception("JWT_SECRET not set");
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
     options.UseSqlServer(connectionString)
            .EnableSensitiveDataLogging()
-           .LogTo(Console.WriteLine, LogLevel.Information));
-
-builder.Services.AddScoped<AuthService>();
+           .LogTo(Console.WriteLine, LogLevel.Information);
+});
+    
 builder.Services.AddScoped<CVService>();
 builder.Services.AddScoped<JobAdService>();
 builder.Services.AddScoped<CoverLetterService>();
 builder.Services.AddScoped<JobApplicationService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<IJwtService>(sp => new JwtService(builder.Configuration["Jwt:Secret"]));
 builder.Services.AddScoped<IAICoverLetterService, OllamaAIService>();
 builder.Services.AddHttpClient<OllamaAIService>(c => { c.BaseAddress = new Uri("http://localhost:11434"); });
@@ -28,7 +35,39 @@ builder.Services.AddHttpClient<OllamaAIService>(c => { c.BaseAddress = new Uri("
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "JobPortal API",
+        Version = "v1"
+    });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter your token like this: Bearer {your token}"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
 
 builder.Services.AddAuthentication(options =>
 {
