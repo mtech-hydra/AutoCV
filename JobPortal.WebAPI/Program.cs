@@ -9,10 +9,6 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 string connectionString = builder.Configuration.GetConnectionString("MainDb");
-//builder.Services.AddDbContext<JobPortalDbContext>(options =>
-//    options.UseSqlServer(connectionString));
-
-// Add debug for SQL stmts
 var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? throw new Exception("JWT_SECRET not set");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -23,14 +19,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
     
 builder.Services.AddScoped<CVService>();
-builder.Services.AddScoped<JobAdService>();
-builder.Services.AddScoped<CoverLetterService>();
-builder.Services.AddScoped<JobApplicationService>();
+//builder.Services.AddScoped<JobAdService>();
+//builder.Services.AddScoped<CoverLetterService>();
+//builder.Services.AddScoped<JobApplicationService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<IJwtService>(sp => new JwtService(builder.Configuration["Jwt:Secret"]));
-builder.Services.AddScoped<IAICoverLetterService, OllamaAIService>();
-builder.Services.AddHttpClient<OllamaAIService>(c => { c.BaseAddress = new Uri("http://localhost:11434"); });
+builder.Services.AddScoped<IJwtService>(sp => new JwtService(jwtSecret));
+//builder.Services.AddScoped<IAICoverLetterService, OllamaAIService>();
+//builder.Services.AddHttpClient<OllamaAIService>(c => { c.BaseAddress = new Uri("http://localhost:11434"); });
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -50,7 +46,7 @@ builder.Services.AddSwaggerGen(options =>
         Scheme = "bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Enter your token like this: Bearer {your token}"
+        Description = "Enter your token like this: {your token}"
     });
 
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -76,7 +72,7 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    var key = Encoding.ASCII.GetBytes(builder.Configuration["Jwt:Secret"]);
+    var key = Encoding.ASCII.GetBytes(jwtSecret);
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
@@ -102,11 +98,6 @@ var app = builder.Build();
 
 // HTTPS is done via Apache Reverse Proxy
 
-
-/*if (app.Environment.IsDevelopment())
-{
-    
-}*/
 app.UseCors("AllowAngular");
 
 app.UseSwagger();
