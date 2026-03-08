@@ -1,3 +1,5 @@
 .vs/
 JobPortal.WebAPI/bin/
 JobPortal.WebAPI/obj/
+AutoCV.Tests/bin/
+AutoCV.Tests/obj
