@@ -19,14 +19,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
     
 builder.Services.AddScoped<CVService>();
-//builder.Services.AddScoped<JobAdService>();
-//builder.Services.AddScoped<CoverLetterService>();
-//builder.Services.AddScoped<JobApplicationService>();
+builder.Services.AddScoped<JobAdService>();
+builder.Services.AddScoped<CoverLetterService>();
+builder.Services.AddScoped<JobApplicationService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<IJwtService>(sp => new JwtService(jwtSecret));
-//builder.Services.AddScoped<IAICoverLetterService, OllamaAIService>();
-//builder.Services.AddHttpClient<OllamaAIService>(c => { c.BaseAddress = new Uri("http://localhost:11434"); });
+builder.Services.AddScoped<IAICoverLetterService, OllamaAIService>();
+builder.Services.AddHttpClient<OllamaAIService>(c => { c.BaseAddress = new Uri("http://localhost:11434"); });
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

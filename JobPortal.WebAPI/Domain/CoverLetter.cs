@@ -8,6 +8,15 @@ public class CoverLetter : BaseEntity
 
     public CoverLetter() { }
 
+    public CoverLetter(CreateCoverLetterRequest request)
+    {
+        UserId = Guid.NewGuid();
+        Title = request.Title;
+        Content = request.Content;
+        IsAIGenerated = request.IsAIGenerated;
+        AICustomPrompt = request.AICustomPrompt;
+    }
+
     public CoverLetter(Guid userId, string title, string content, bool isAiGenerated, string? aiPrompt = null)
     {
         UserId = userId;

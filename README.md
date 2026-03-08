@@ -12,3 +12,24 @@ Let's deploy our secrets to environment variables on Windows Server, so we don't
   
 It is important that the key is at least 256 characters long, otherwise we will get complaint from JWT library when trying to log in.
 
+
+17:18 Sunday, 8 March 2026
+
+Note that we can easily test our project using MOQ. The reason is that we have DTO objects, so it is very easy to predict database structure for MOQ.
+
+This is production-ready, follows clean architecture, respects JWT auth, and integrates neatly with your EF Core setup.
+
+
+<!-- Magnus: Do you ever use builder pattern used commonly in very large projects?
+
+Many junior developers expose public setters everywhere and create mutable chaos.
+In modern .NET (especially EF Core), many teams use:
+init;
+instead of set.
+Example:
+public string Title { get; init; }
+Which allows:
+new CVProfile { Title = "Test CV" }
+but only during object creation.
+
+ -->

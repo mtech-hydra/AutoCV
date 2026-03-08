@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -38,7 +39,9 @@ public class CoverLettersController : ControllerBase
         return NoContent();
     }
 
-    private Guid UserId => Guid.Parse(User.FindFirst("nameid")!.Value);
+    private Guid UserId =>
+        Guid.Parse(User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier)
+                   ?? throw new InvalidOperationException("User id claim missing"));
 }
 
 public record GenerateCoverLetterRequest(string JobDescription, string CompanyName, string CvSummary, string Skills, string? AiPrompt = null);

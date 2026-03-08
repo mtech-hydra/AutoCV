@@ -9,6 +9,16 @@ public class CVProfile : BaseEntity
 
     public CVProfile() { }
 
+    public CVProfile(CreateCVRequest request)
+    {
+        UserId = Guid.NewGuid();
+        Title = request.Title;
+        Summary = request.Summary;
+        Skills = request.Skills;
+        Experience = request.Experience;
+        Education = request.Education;
+    }
+
     public CVProfile(Guid userId, string title, string summary, string skills, string experience, string education)
     {
         UserId = userId;

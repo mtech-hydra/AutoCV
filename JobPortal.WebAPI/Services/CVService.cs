@@ -1,14 +1,40 @@
+using JobPortal.WebAPI.DTOs;    
+using JobPortal.WebAPI.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 public class CVService
 {
-    public Task<List<CVProfile>> GetAllAsync() => Task.FromResult(new List<CVProfile>());
+    private readonly AppDbContext _context;
+    public CVService(AppDbContext context)
+    {
+        _context = context;
+    }
 
-    public Task<CVProfile> GetByIdAsync(Guid id) => Task.FromResult(new CVProfile());
+    public Task<List<CVProfile>> GetAllAsync() {
+        return _context.CVProfiles
+                       .Where(c => !c.IsDeleted)
+                       .ToListAsync();
+    }
 
-    public Task<CVProfile> CreateAsync(Guid userId, CreateCVRequest request) => Task.FromResult(new CVProfile());
+    public async Task<CVProfile?> GetByIdAsync(Guid id)
+    {
+        return await _context.CVProfiles
+                             .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
+    }
+
+    public async Task<CvProfileResponse> CreateAsync(Guid userId, CreateCVRequest request)
+    {
+        var cvProfile = new CVProfile(userId, request.Title, request.Summary, request.Skills, request.Experience, request.Education);
+        _context.CVProfiles.Add(cvProfile);
+        await _context.SaveChangesAsync();  
+        return new CvProfileResponse
+        {
+            Id = cvProfile.Id, Title = cvProfile.Title, Summary = cvProfile.Summary, Skills = cvProfile.Skills
+        };
+    }
 
     public Task<CVProfile> UpdateAsync(Guid id, UpdateCVRequest request) => Task.FromResult(new CVProfile());
 

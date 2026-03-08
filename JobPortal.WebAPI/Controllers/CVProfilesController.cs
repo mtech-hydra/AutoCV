@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -31,7 +32,9 @@ public class CVProfilesController : ControllerBase
         return NoContent();
     }
 
-    private Guid UserId => Guid.Parse(User.FindFirst("nameid")!.Value);
+    private Guid UserId =>
+        Guid.Parse(User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier)
+            ?? throw new InvalidOperationException("UserID Claim is missing"));
 }
 
 public record CreateCVRequest(string Title, string Summary, string Skills, string Experience, string Education);
