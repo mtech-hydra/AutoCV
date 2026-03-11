@@ -1,3 +1,19 @@
+# What I am doing
+
+I’m deploying an Angular frontend with a .NET backend API. What you are looking at is the backend API.
+
+Production setup:
+
+* Angular app is served by Apache at
+* Apache proxies /api/ to an internal backend: http://srv2k19.local:5000/api/
+* Angular should call the API using relative URLs like /api/Auth/login.
+
+Development setup:
+
+* Angular runs with ng serve
+* Backend runs locally at http://localhost:5000
+* In dev I want Angular to call http://localhost:5000/api/....
+
 # What I have:
 
 * Authentication using JWT (login/logout/register)
