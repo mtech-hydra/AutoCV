@@ -8,9 +8,9 @@ public class CoverLetter : BaseEntity
 
     public CoverLetter() { }
 
-    public CoverLetter(CreateCoverLetterRequest request)
+    public CoverLetter(Guid userId, CreateCoverLetterRequest request)
     {
-        UserId = Guid.NewGuid();
+        UserId = userId;
         Title = request.Title;
         Content = request.Content;
         IsAIGenerated = request.IsAIGenerated;
@@ -26,10 +26,18 @@ public class CoverLetter : BaseEntity
         AICustomPrompt = aiPrompt;
     }
 
-    public void UpdateContent(string content, string? aiPrompt = null)
+
+    public void Update(string title, string content, string? aiPrompt = null)
     {
+        Title = title;
         Content = content;
         AICustomPrompt = aiPrompt;
+        SetUpdated();
+    }
+
+    public void setDeleted()
+    {
+        IsDeleted = true;
         SetUpdated();
     }
 }

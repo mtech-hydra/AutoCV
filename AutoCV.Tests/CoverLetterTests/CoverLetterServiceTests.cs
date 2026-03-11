@@ -1,7 +1,7 @@
 ﻿using JobPortal.WebAPI.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
-namespace AutoCV.Tests.CVProfiles
+namespace AutoCV.Tests.CoverLetterTests
 {
     public class CoverLetterServiceTests
     {
@@ -52,8 +52,9 @@ namespace AutoCV.Tests.CVProfiles
                 "This is a test cover letter.",
                 false
             );
+            var userId = Guid.NewGuid();
 
-            var letter = new CoverLetter(letterRequest);
+            var letter = new CoverLetter(userId, letterRequest);
 
             Guid id = letter.Id;
 

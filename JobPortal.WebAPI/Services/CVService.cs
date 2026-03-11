@@ -8,9 +8,13 @@ using System.Threading.Tasks;
 public class CVService
 {
     private readonly AppDbContext _context;
-    public CVService(AppDbContext context)
+    private readonly ILogger<CVService> _logger;
+
+    public CVService(AppDbContext context, ILogger<CVService> logger)
     {
         _context = context;
+        // The following thing should never happen, nonetheless the runtime requires us to handle it.
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     public Task<List<CVProfile>> GetAllAsync() {
@@ -36,7 +40,39 @@ public class CVService
         };
     }
 
-    public Task<CVProfile> UpdateAsync(Guid id, UpdateCVRequest request) => Task.FromResult(new CVProfile());
+    public async Task<CVProfile> UpdateAsync(Guid id, UpdateCVRequest request)
+    {
+        var cvProfile = await _context.CVProfiles
+                                      .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
 
-    public Task DeleteAsync(Guid id) => Task.CompletedTask;
+        if (cvProfile is null)
+        {
+            _logger.LogWarning("CVProfile with Id {Id} not found or is deleted.", id);
+            throw new KeyNotFoundException($"CVProfile with Id {id} not found.");
+        }
+
+        cvProfile.Update(request.Title, request.Summary, request.Skills, request.Experience, request.Education);
+
+        await _context.SaveChangesAsync();
+
+        return cvProfile;
+    }
+
+    public async Task DeleteAsync(Guid id)
+    {
+        var cvProfile = await _context.CVProfiles
+                                      .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
+
+        if (cvProfile is null)
+        {
+            _logger.LogWarning("CVProfile with Id {Id} not found or already deleted.", id);
+            throw new KeyNotFoundException($"CVProfile with Id {id} not found.");
+        }
+
+        cvProfile.setDeleted();
+
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("CVProfile with Id {Id} soft-deleted.", id);
+    }
 }

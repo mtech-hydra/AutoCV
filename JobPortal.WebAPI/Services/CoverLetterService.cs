@@ -5,45 +5,80 @@ using Microsoft.EntityFrameworkCore;
 public class CoverLetterService
 {
     private readonly AppDbContext _context;
-    public CoverLetterService(AppDbContext context) 
+    private readonly ILogger<CoverLetterService> _logger;
+    public CoverLetterService(AppDbContext context, ILogger<CoverLetterService> logger) 
     {
         _context = context;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         // Initialize any dependencies here (e.g., database context, AI service client)
     }
-    public Task<List<CoverLetter>> GetAllAsync(Guid userId) {
-        // ToDo: discuss benefits of returning IQueryable vs List here, and how to handle pagination/filtering/sorting in the future
-        return _context.CoverLetters.Where(cl => cl.UserId == userId).ToListAsync();
+    public Task<List<CoverLetter>> GetAllAsync(Guid userId)
+    {
+        return _context.CoverLetters
+                       .Where(c => !c.IsDeleted)
+                       .Where(c => c.UserId == userId)
+                       .ToListAsync();
     }
 
-    public async Task<CoverLetter> GetByIdAsync(Guid id)
+    public async Task<CoverLetter?> GetByIdAsync(Guid id)
     {
-        var coverLetter = await _context.CoverLetters
-            .AsNoTracking()
-            .FirstOrDefaultAsync(cl => cl.Id == id && !cl.IsDeleted);
-
-        /*if (coverLetter == null)
-        {
-            throw new KeyNotFoundException($"Cover letter with id '{id}' was not found.");
-        }*/
-
-        return coverLetter; // Note: returning null if not found, controller can handle this and return 404
+        return await _context.CoverLetters
+                             .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
     }
 
     public async Task<CreateCoverLetterResponse> CreateAsync(Guid userId, CreateCoverLetterRequest request) {
-        var coverLetter = new CoverLetter(request);
+        Console.WriteLine("[dbg] CreateCoverLetterAsync for user " + userId.ToString());
+        var coverLetter = new CoverLetter(userId, request);
         _context.CoverLetters.Add(coverLetter);
         await _context.SaveChangesAsync();
-        return new CreateCoverLetterResponse
+        CreateCoverLetterResponse response = new CreateCoverLetterResponse
         {
             UserId = coverLetter.UserId,
             Title = coverLetter.Title,
             Content = coverLetter.Content,
         };
+        Console.WriteLine("[dbg] CoverLetterResponse: " + response.ToString());
+        return response;
     }
 
-    public Task<CoverLetter> UpdateAsync(Guid id, UpdateCoverLetterRequest request) => Task.FromResult(new CoverLetter());
+    public async Task<CoverLetter?> UpdateAsync(Guid id, UpdateCoverLetterRequest request)
+    {
+        // Fetch the existing cover letter
+        var coverLetter = await _context.CoverLetters
+                                        .FirstOrDefaultAsync(cl => cl.Id == id && !cl.IsDeleted);
 
-    public Task DeleteAsync(Guid id) => Task.CompletedTask;
+        if (coverLetter is null)
+        {
+            Console.WriteLine($"[dbg] CoverLetter with Id {id} not found or is deleted.");
+            return null; // Controller can return 404 if null
+        }
+
+        Console.WriteLine($"[dbg] Updating CoverLetter with Id {id} - Title: {request.Title}, Content Length: {request.Content.Length}, AI Prompt: {request.AICustomPrompt}");
+        // Apply updates using the entity's Update method
+        coverLetter.Update(request.Title, request.Content, request.AICustomPrompt);
+
+        // Persist changes
+        await _context.SaveChangesAsync();
+
+        return coverLetter;
+    }
+
+    public async Task DeleteAsync(Guid id)
+    {
+        _logger.LogInformation("Attempting to delete cover letter with Id {Id}", id);
+        var coverLetter = await _context.CoverLetters
+                                        .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
+
+        if (coverLetter is null)
+        {
+            throw new KeyNotFoundException($"Cover letter with Id {id} not found.");
+        }
+
+        coverLetter.setDeleted();
+
+        await _context.SaveChangesAsync();
+        _logger.LogInformation("Cover letter with Id {Id} marked as deleted.", id);
+    }
 
     public Task<string> GenerateAIAsync(Guid userId, GenerateCoverLetterRequest request)
     {

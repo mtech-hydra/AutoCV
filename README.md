@@ -1,3 +1,10 @@
+# What I have:
+
+* Authentication using JWT (login/logout/register)
+* Some tests with MOQ
+* REST API
+* Clean Architecture
+
 # Build diaries
 
 13:33 Sunday, 8 March 2026

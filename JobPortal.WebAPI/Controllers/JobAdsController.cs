@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -33,8 +34,11 @@ public class JobAdsController : ControllerBase
         return NoContent();
     }
 
-    private Guid UserId => Guid.Parse(User.FindFirst("nameid")!.Value);
+    private Guid UserId =>
+        Guid.Parse(User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier)
+            ?? throw new InvalidOperationException("UserID Claim is missing")); 
 }
 
 public record CreateJobAdRequest(string Title, string Description, string CompanyName, string Location, string SalaryRange);
+public record CreateJobAdRequestResponse(JobAd JobAd);
 public record UpdateJobAdRequest(string Title, string Description, string CompanyName, string Location, string SalaryRange);

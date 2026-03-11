@@ -28,4 +28,18 @@ public class CVProfile : BaseEntity
         Experience = experience;
         Education = education;
     }
+
+    public void Update(string? title, string? summary, string? skills, string? experience, string? education)
+    {
+        if (!string.IsNullOrWhiteSpace(title)) Title = title;
+        if (!string.IsNullOrWhiteSpace(summary)) Summary = summary;
+        if (skills != null) Skills = skills;
+        if (experience != null) Experience = experience;
+        if (education != null) Education = education;
+    }
+
+    public void setDeleted()
+    {
+               IsDeleted = true;
+    }
 }

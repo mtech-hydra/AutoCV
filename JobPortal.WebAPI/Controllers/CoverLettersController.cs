@@ -20,6 +20,7 @@ public class CoverLettersController : ControllerBase
     [HttpPost("generate")]
     public async Task<IActionResult> Generate(GenerateCoverLetterRequest request)
     {
+        Console.WriteLine("[dbg] Generate request");
         var result = await _service.GenerateAIAsync(UserId, request);
         return Ok(result);
     }

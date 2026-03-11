@@ -21,9 +21,18 @@ public class JobAd : BaseEntity
         IsActive = true;
     }
 
-    public void Deactivate()
+    public void Update(string? title, string? description, string? companyName, string? location, string? salaryRange, bool? isActive)
     {
-        IsActive = false;
+        if (!string.IsNullOrWhiteSpace(title)) Title = title;
+        if (!string.IsNullOrWhiteSpace(description)) Description = description;
+        if (!string.IsNullOrWhiteSpace(companyName)) CompanyName = companyName;
+        if (!string.IsNullOrWhiteSpace(location)) Location = location;
+        if (!string.IsNullOrWhiteSpace(salaryRange)) SalaryRange = salaryRange;
+        if (isActive.HasValue) IsActive = isActive.Value;
+    }
+    public void setDeleted()
+    {
+        IsDeleted = true;
         SetUpdated();
     }
 }
