@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -24,7 +25,9 @@ public class JobApplicationsController : ControllerBase
     public async Task<IActionResult> UpdateStatus(Guid id, UpdateApplicationStatusRequest request)
         => Ok(await _service.UpdateStatusAsync(UserId, id, request));
 
-    private Guid UserId => Guid.Parse(User.FindFirst("nameid")!.Value);
+    private Guid UserId =>
+        Guid.Parse(User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier)
+            ?? throw new InvalidOperationException("UserID Claim is missing"));
 }
 
 public record ApplyJobRequest(Guid JobAdId, Guid CvProfileId, Guid CoverLetterId);

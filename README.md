@@ -21,6 +21,14 @@ Development setup:
 * REST API
 * Clean Architecture
 
+# Backend structure
+
+* Controllers
+* Domain
+* DTOs
+* Infrastructure
+* Services
+
 # Build diaries
 
 13:33 Sunday, 8 March 2026
@@ -54,5 +62,42 @@ public string Title { get; init; }
 Which allows:
 new CVProfile { Title = "Test CV" }
 but only during object creation.
+
+# Backend structure
+
+* Controllers
+* Domain
+* DTOs
+* Infrastructure
+* Services
+
+I want to add a new service or microservice as separate project.
+
+public class CoverLetter : BaseEntity
+{
+    public Guid UserId { get; private set; }
+    public string Title { get; private set; }
+    public string Content { get; private set; }
+    public bool IsAIGenerated { get; private set; }
+    public string? AICustomPrompt { get; private set; }
+
+
+public class JobAd : BaseEntity
+{
+    public Guid UserId { get; private set; }
+    public string Title { get; private set; }
+    public string Description { get; private set; }
+    public string CompanyName { get; private set; }
+    public string Location { get; private set; }
+    public string SalaryRange { get; private set; }
+    public bool IsActive { get; private set; }
+
+public class JobApplication : BaseEntity
+{
+    public Guid UserId { get; private set; }
+    public Guid JobAdId { get; private set; }
+    public Guid CVProfileId { get; private set; }
+    public Guid CoverLetterId { get; private set; }
+    public JobApplicationStatus Status { get; set; }
 
  -->
