@@ -10,7 +10,7 @@ The solution is split in front and back-end part. Front-end developed with Angul
 
 Test account: string / string
 
-
+<!--
 # Why did you build it?
 I built it to solve challenges of AI-influenced job market, where people use AI to generate job ads, and applicants use AI to apply.
 
@@ -26,6 +26,8 @@ The problem is that everything recruiters get nowadays is AI fluff.
 # What makes it different from a normal CRUD app?
 
 Functionality: translate job description etc, technically, it uses WebAssembly to enable secure code execution for different tenants to upload their custom matching logic.
+
+-->
 
 # How to run
 
@@ -166,7 +168,9 @@ Send me this filled template:
 
 # Design
 
-The system is designed with somewhat simplified clean architecture. It is divided into the following directory structure
+The system is designed with somewhat simplified clean architecture. 
+
+<!-- It is divided into the following directory structure
 
 ## Controllers
 
@@ -256,7 +260,7 @@ Note: JWT secret must be sufficiently long to meet security requirements.
 
 This application is hosted on a self-managed on-premise environment. It is available publicly, so that you can click around.
 
-This system was originally developed on Windows Server due to ubiquitous nature of this solution. More deployments should be done with Linux and Docker in the future.
+This system was originally developed on Windows Server due to ubiquitous nature of this solution. More Linux and Docker for the future?
 
 <!--
 17:18 Sunday, 8 March 2026
